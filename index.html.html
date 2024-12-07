@@ -9,12 +9,12 @@
             font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
-            background-color: #f4f4f9;
-            color: #333;
+            background-color: #121212;
+            color: #fff;
         }
 
         header {
-            background-color: #ff6f61;
+            background-color: #2c7a7b; /* Bluish Green */
             color: #fff;
             padding: 1rem;
             text-align: center;
@@ -35,7 +35,7 @@
         .options button {
             padding: 1rem 2rem;
             font-size: 1.2rem;
-            background-color: #ff6f61;
+            background-color: #2c7a7b; /* Bluish Green */
             color: #fff;
             border: none;
             cursor: pointer;
@@ -44,29 +44,57 @@
         }
 
         .options button:hover {
-            background-color: #ff4d4d;
+            background-color: #1b5a58; /* Darker Bluish Green */
         }
 
-        .genres, .recommendations {
+        .genres, .recommendations, .favorites {
             margin-top: 2rem;
             display: none;
         }
 
-        .genre-list, .recommendation-list {
+        .genre-list, .recommendation-list, .favorite-list {
             list-style: none;
             padding: 0;
         }
 
-        .genre-list li, .recommendation-list li {
+        .genre-list li, .recommendation-list li, .favorite-list li {
             margin: 0.5rem 0;
             cursor: pointer;
-            color: #007bff;
+            color: #fbbf24; /* Yellow */
             text-decoration: underline;
         }
 
-        .genre-list li:hover, .recommendation-list li:hover {
-            color: #0056b3;
+        .genre-list li:hover, .recommendation-list li:hover, .favorite-list li:hover {
+            color: #2c7a7b; /* Bluish Green */
         }
+
+        .favorites {
+            font-size: 0.9rem; /* Smaller font size */
+        }
+
+        /* Styling for collapsible sections */
+        .collapsible {
+            background-color: #2c7a7b;
+            color: #fff;
+            cursor: pointer;
+            padding: 1rem;
+            width: 100%;
+            text-align: center;
+            border: none;
+            border-radius: 5px;
+            margin-top: 1rem;
+        }
+
+        .collapsible:hover {
+            background-color: #1b5a58; /* Darker Bluish Green */
+        }
+
+        .content {
+            padding: 1rem;
+            display: none;
+            text-align: left;
+        }
+
     </style>
 </head>
 <body>
@@ -77,8 +105,8 @@
 
     <div class="container">
         <div class="options">
-            <button id="animeButton">Watch Anime</button>
-            <button id="mangaButton">Read Manga</button>
+            <button id="animeButton">Suggest Anime</button>
+            <button id="mangaButton">Suggest Manga</button>
         </div>
 
         <div class="genres" id="genres">
@@ -95,6 +123,14 @@
                 <!-- Recommendations will be dynamically added -->
             </ul>
         </div>
+
+        <!-- Collapsible Developer's Top Favorites -->
+        <button class="collapsible" id="favoritesButton">Developer's Top Favorites</button>
+        <div class="content" id="favoritesContent">
+            <ul class="favorite-list" id="favoriteList">
+                <!-- Developer's top favorites will be dynamically added -->
+            </ul>
+        </div>
     </div>
 
     <script>
@@ -104,7 +140,7 @@
         };
 
         const recommendations = {
-            Action: ["Attack on Titan", "Naruto", "One Punch Man", "My Hero Academia", "Dragon Ball Z", "Demon Slayer", "Bleach", "Hunter x Hunter", "Jujutsu Kaisen", "Black Clover"],
+            Action: ["Attack on Titan", "Naruto", "One Punch Man", "My Hero Academia", "Dragon Ball Z", "Demon Slayer", "Bleach", "Hunter x Hunter", "Jujutsu Kaisen", "Black Clover", "Vinland Saga", "Sword Art Online"],
             Comedy: ["Gintama", "Konosuba", "Nichijou", "One Piece", "Saiki Kusuo", "Monthly Girls' Nozaki-kun", "Grand Blue", "Asobi Asobase", "Haven't You Heard? I'm Sakamoto", "Ouran High School Host Club"],
             "Crime Fiction": ["Monster", "Death Note", "Psycho-Pass", "Bungou Stray Dogs", "Code Geass", "Erased", "Black Lagoon", "Durarara!!", "Paranoia Agent", "Gyakkyou Burai Kaiji"],
             Drama: ["Your Lie in April", "Clannad", "Steins;Gate", "Anohana", "Fruits Basket", "A Silent Voice", "Violet Evergarden", "March Comes in Like a Lion", "Tokyo Magnitude 8.0", "Monster"],
@@ -112,23 +148,37 @@
             Romance: ["Toradora!", "Kimi ni Todoke", "Clannad", "Fruits Basket", "Your Lie in April", "Horimiya", "Ao Haru Ride", "Lovely★Complex", "Nisekoi", "Bloom Into You"]
         };
 
+        const developerFavorites = [
+            "Attack on Titan", "Death Note", "Vinland Saga", "The Promised Neverland", "My Hero Academia", "Code Geass"
+        ];
+
         const selectedGenres = new Set();
 
         const animeButton = document.getElementById("animeButton");
         const mangaButton = document.getElementById("mangaButton");
         const genresDiv = document.getElementById("genres");
         const recommendationsDiv = document.getElementById("recommendations");
+        const favoritesDiv = document.getElementById("favoritesContent");
         const genreList = document.getElementById("genreList");
         const recommendationList = document.getElementById("recommendationList");
+        const favoriteList = document.getElementById("favoriteList");
         const showRecommendationsButton = document.getElementById("showRecommendations");
+
+        const favoritesButton = document.getElementById("favoritesButton");
 
         animeButton.addEventListener("click", () => displayGenres("anime"));
         mangaButton.addEventListener("click", () => displayGenres("manga"));
         showRecommendationsButton.addEventListener("click", displayRecommendations);
 
+        favoritesButton.addEventListener("click", toggleFavorites);
+
+        // Display Developer's Top Favorites when the page loads
+        window.addEventListener('load', displayFavorites);
+
         function displayGenres(type) {
             genresDiv.style.display = "block";
             recommendationsDiv.style.display = "none";
+            favoritesDiv.style.display = "none";
             genreList.innerHTML = "";
             selectedGenres.clear();
             genres[type].forEach(genre => {
@@ -142,15 +192,16 @@
         function toggleGenreSelection(element, genre) {
             if (selectedGenres.has(genre)) {
                 selectedGenres.delete(genre);
-                element.style.color = "#007bff";
+                element.style.color = "#fbbf24"; /* Yellow */
             } else {
                 selectedGenres.add(genre);
-                element.style.color = "#ff4d4d";
+                element.style.color = "#2c7a7b"; /* Bluish Green */
             }
         }
 
         function displayRecommendations() {
             recommendationsDiv.style.display = "block";
+            favoritesDiv.style.display = "none";
             recommendationList.innerHTML = "";
 
             const combinedRecommendations = new Map();
@@ -178,6 +229,27 @@
                     recommendationList.appendChild(li);
                 });
             }
+        }
+
+        function toggleFavorites() {
+            if (favoritesDiv.style.display === "none") {
+                favoritesDiv.style.display = "block";
+            } else {
+                favoritesDiv.style.display = "none";
+            }
+        }
+
+        function displayFavorites() {
+            developerFavorites.forEach(favorite => {
+                const li = document.createElement("li");
+                li.textContent = favorite;
+                favoriteList.appendChild(li);
+            });
+        }
+    </script>
+</body>
+</html>
+
         }
     </script>
 </body>

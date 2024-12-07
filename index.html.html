@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Entertainment Hub</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f9;
+            color: #333;
+        }
+
+        header {
+            background-color: #ff6f61;
+            color: #fff;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .container {
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .options {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .options button {
+            padding: 1rem 2rem;
+            font-size: 1.2rem;
+            background-color: #ff6f61;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+
+        .options button:hover {
+            background-color: #ff4d4d;
+        }
+
+        .genres, .recommendations {
+            margin-top: 2rem;
+            display: none;
+        }
+
+        .genre-list, .recommendation-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .genre-list li, .recommendation-list li {
+            margin: 0.5rem 0;
+            cursor: pointer;
+            color: #007bff;
+            text-decoration: underline;
+        }
+
+        .genre-list li:hover, .recommendation-list li:hover {
+            color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Entertainment Hub</h1>
+        <p>Explore Anime and Manga Recommendations by Genre</p>
+    </header>
+
+    <div class="container">
+        <div class="options">
+            <button id="animeButton">Watch Anime</button>
+            <button id="mangaButton">Read Manga</button>
+        </div>
+
+        <div class="genres" id="genres">
+            <h2>Select Genres</h2>
+            <ul class="genre-list" id="genreList">
+                <!-- Genres will be dynamically added -->
+            </ul>
+            <button id="showRecommendations">Show Recommendations</button>
+        </div>
+
+        <div class="recommendations" id="recommendations">
+            <h2>Top Recommendations</h2>
+            <ul class="recommendation-list" id="recommendationList">
+                <!-- Recommendations will be dynamically added -->
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        const genres = {
+            anime: ["Action", "Comedy", "Crime Fiction", "Drama", "Fantasy", "Horror", "Mystery", "Romance", "Sci-Fi", "Slice of Life"],
+            manga: ["Adventure", "Crime Fiction", "Fantasy", "Mystery", "Supernatural", "Sports", "Thriller", "Historical", "Romance"]
+        };
+
+        const recommendations = {
+            Action: ["Attack on Titan", "Naruto", "One Punch Man", "My Hero Academia", "Dragon Ball Z", "Demon Slayer", "Bleach", "Hunter x Hunter", "Jujutsu Kaisen", "Black Clover"],
+            Comedy: ["Gintama", "Konosuba", "Nichijou", "One Piece", "Saiki Kusuo", "Monthly Girls' Nozaki-kun", "Grand Blue", "Asobi Asobase", "Haven't You Heard? I'm Sakamoto", "Ouran High School Host Club"],
+            "Crime Fiction": ["Monster", "Death Note", "Psycho-Pass", "Bungou Stray Dogs", "Code Geass", "Erased", "Black Lagoon", "Durarara!!", "Paranoia Agent", "Gyakkyou Burai Kaiji"],
+            Drama: ["Your Lie in April", "Clannad", "Steins;Gate", "Anohana", "Fruits Basket", "A Silent Voice", "Violet Evergarden", "March Comes in Like a Lion", "Tokyo Magnitude 8.0", "Monster"],
+            Mystery: ["Monster", "Death Note", "Erased", "Bungou Stray Dogs", "The Promised Neverland", "Steins;Gate", "Another", "Higurashi", "Paranoia Agent", "Zankyou no Terror"],
+            Romance: ["Toradora!", "Kimi ni Todoke", "Clannad", "Fruits Basket", "Your Lie in April", "Horimiya", "Ao Haru Ride", "Lovely★Complex", "Nisekoi", "Bloom Into You"]
+        };
+
+        const selectedGenres = new Set();
+
+        const animeButton = document.getElementById("animeButton");
+        const mangaButton = document.getElementById("mangaButton");
+        const genresDiv = document.getElementById("genres");
+        const recommendationsDiv = document.getElementById("recommendations");
+        const genreList = document.getElementById("genreList");
+        const recommendationList = document.getElementById("recommendationList");
+        const showRecommendationsButton = document.getElementById("showRecommendations");
+
+        animeButton.addEventListener("click", () => displayGenres("anime"));
+        mangaButton.addEventListener("click", () => displayGenres("manga"));
+        showRecommendationsButton.addEventListener("click", displayRecommendations);
+
+        function displayGenres(type) {
+            genresDiv.style.display = "block";
+            recommendationsDiv.style.display = "none";
+            genreList.innerHTML = "";
+            selectedGenres.clear();
+            genres[type].forEach(genre => {
+                const li = document.createElement("li");
+                li.textContent = genre;
+                li.addEventListener("click", () => toggleGenreSelection(li, genre));
+                genreList.appendChild(li);
+            });
+        }
+
+        function toggleGenreSelection(element, genre) {
+            if (selectedGenres.has(genre)) {
+                selectedGenres.delete(genre);
+                element.style.color = "#007bff";
+            } else {
+                selectedGenres.add(genre);
+                element.style.color = "#ff4d4d";
+            }
+        }
+
+        function displayRecommendations() {
+            recommendationsDiv.style.display = "block";
+            recommendationList.innerHTML = "";
+
+            const combinedRecommendations = new Map();
+
+            selectedGenres.forEach(genre => {
+                (recommendations[genre] || []).forEach(item => {
+                    if (combinedRecommendations.has(item)) {
+                        combinedRecommendations.set(item, combinedRecommendations.get(item) + 1);
+                    } else {
+                        combinedRecommendations.set(item, 1);
+                    }
+                });
+            });
+
+            const sortedRecommendations = Array.from(combinedRecommendations.entries())
+                .sort((a, b) => b[1] - a[1])
+                .map(entry => entry[0]);
+
+            if (sortedRecommendations.length === 0) {
+                recommendationList.innerHTML = "<li>No recommendations available.</li>";
+            } else {
+                sortedRecommendations.forEach(item => {
+                    const li = document.createElement("li");
+                    li.textContent = item;
+                    recommendationList.appendChild(li);
+                });
+            }
+        }
+    </script>
+</body>
+</html>
